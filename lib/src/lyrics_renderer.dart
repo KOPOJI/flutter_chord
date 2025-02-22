@@ -54,6 +54,8 @@ class LyricsRenderer extends StatefulWidget {
   /// Optional external scroll controller, otherwise will be created internally
   final ScrollController? scrollController;
 
+  final bool allowSingleLineChorus;
+
   const LyricsRenderer(
       {Key? key,
       required this.lyrics,
@@ -74,7 +76,8 @@ class LyricsRenderer extends StatefulWidget {
       this.leadingWidget,
       this.trailingWidget,
       this.chordNotation = ChordNotation.american,
-      this.scrollController})
+      this.scrollController,
+      this.allowSingleLineChorus = false})
       : super(key: key);
 
   @override
@@ -190,7 +193,9 @@ class _LyricsRendererState extends State<LyricsRenderer> {
                                       textScaler:
                                           TextScaler.linear(widget.scaleFactor),
                                     ),
-                                  )
+                                  ),
+                                  if(widget.allowSingleLineChorus && (chord.suffix?.length ?? 0) > 0)
+                                    Text(" ${chord.suffix!.trim()} "),
                                 ],
                               ))
                           .toList(),

@@ -126,7 +126,21 @@ class ChordProcessor {
         .width;
   }
 
+  bool _hasOnlyChords(String line, {bool replaceMeta = false}) {
+    if (replaceMeta) {
+      line = line.replaceAll(RegExp(r'\{.+?}'), '');
+    }
+    return line
+        .replaceAll(RegExp(r'\[.+?\]'), '')
+        .replaceAll(RegExp(r'x\d+'), '')
+        .replaceAll(RegExp(r'[^A-z0-9А-яЁё]', unicode: true), '')
+        .trim()
+        .isEmpty;
+  }
+
   bool isChorus = false;
+  bool isValidChorus = true;
+  bool hasOnlyChords = false;
   ChordLyricsLine _processLine(String line, TextStyle lyricsStyle,
       TextStyle chordStyle, TextStyle chorusStyle) {
     ChordLyricsLine _chordLyricsLine = ChordLyricsLine();
@@ -138,7 +152,9 @@ class ChordProcessor {
     } else if (line.contains("{eoc}") || line.contains("{end_of_chorus}")) {
       isChorus = false;
     }
-    line.split('').forEach((character) {
+    hasOnlyChords = _hasOnlyChords(line);
+
+    line.split('').asMap().forEach((index, character) {
       if (character == ']') {
         final sizeOfLeadingLyrics = isChorus
             ? textWidth(_lyricsSoFar, chorusStyle)
@@ -153,9 +169,18 @@ class ChordProcessor {
 
         double leadingSpace = max(0, sizeOfLeadingLyrics - lastChordWidth);
 
-        final transposedChord = chordTransposer.transposeChord(_chordsSoFar);
+        final transposedChord = chordTransposer.transposeChord(_chordsSoFar.trim());
 
-        _chordLyricsLine.chords.add(Chord(leadingSpace, transposedChord));
+        String? suffix = null;
+        if(hasOnlyChords) {
+          String restLine = line.substring(index + 1);
+          int firstIndex = restLine.indexOf('[');
+          suffix = restLine.substring(0, firstIndex == -1 ? null : firstIndex).trim();
+        } else {
+          suffix = null;
+        }
+        _chordLyricsLine.chords.add(Chord(leadingSpace + textWidth(suffix ?? '', chordStyle), transposedChord, suffix: suffix));
+
         _chordLyricsLine.lyrics += _lyricsSoFar;
         _lyricsSoFar = '';
         _chordsSoFar = '';
@@ -172,6 +197,11 @@ class ChordProcessor {
     });
 
     _chordLyricsLine.lyrics += _lyricsSoFar;
+    _chordLyricsLine.originalLine = line;
+
+    if(_hasOnlyChords(_chordLyricsLine.lyrics, replaceMeta: false)) {
+      _chordLyricsLine.lyrics = '';
+    }
 
     return _chordLyricsLine;
   }

@@ -219,4 +219,45 @@ void main() {
       ),
     );
   });
+
+
+  testWidgets('Can parse lines with only chords without any text', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        builder: (context, _) {
+          String text =
+              '{soc}\n*Вступление:*\n [Am] | [G] | [F] | [G] }x4\n[C]This is t[D]he Cho[D]rus\n{eoc}';
+          final textStyle = TextStyle(fontSize: 18, color: Colors.green);
+          final chorusStyle = TextStyle(
+              fontSize: 21, fontWeight: FontWeight.bold, color: Colors.white);
+
+          final processor = ChordProcessor(context);
+          final chordDocument = processor.processText(
+            text: text,
+            lyricsStyle: textStyle,
+            chordStyle: textStyle,
+            chorusStyle: chorusStyle,
+          );
+
+          expect(
+            chordDocument.chordLyricsLines.length,
+            5,
+          );
+          expect(
+            chordDocument.chordLyricsLines.elementAt(2).chords.length,
+            4,
+          );
+          expect(
+            chordDocument.chordLyricsLines.elementAt(3).chords.length,
+            3,
+          );
+          expect(
+            chordDocument.chordLyricsLines.elementAt(2).chords.last.chordText,
+            'G',
+          );
+          return Container();
+        },
+      ),
+    );
+  });
 }

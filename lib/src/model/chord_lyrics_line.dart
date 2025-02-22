@@ -1,12 +1,16 @@
 class ChordLyricsLine {
   List<Chord> chords;
   String lyrics;
+  String originalLine;
+
+  String get textLine => lyrics.replaceAll(RegExp(r'{[^}]+?}'), '').replaceAll(RegExp(r'[^A-z0-9]+'), '');
 
   ChordLyricsLine()
       : chords = [],
-        lyrics = '';
+        lyrics = '',
+        originalLine = '';
 
-  ChordLyricsLine.line(this.chords, this.lyrics);
+  ChordLyricsLine.line(this.chords, this.lyrics, this.originalLine);
 
   /// Remove also the keyword
   bool isStartOfChorus() {
@@ -47,18 +51,19 @@ class ChordLyricsLine {
 
   @override
   String toString() {
-    return 'ChordLyricsLine($chords, lyrics: $lyrics)';
+    return 'ChordLyricsLine($chords, lyrics: $lyrics, textLine: $textLine, originalLine: $originalLine)';
   }
 }
 
 class Chord {
   double leadingSpace;
   String chordText;
+  String? suffix;
 
-  Chord(this.leadingSpace, this.chordText);
+  Chord(this.leadingSpace, this.chordText, {this.suffix = null});
 
   @override
   String toString() {
-    return 'Chord(leadingSpace: $leadingSpace, chordText: $chordText)';
+    return 'Chord(leadingSpace: $leadingSpace, chordText: $chordText, suffix: $suffix)';
   }
 }
